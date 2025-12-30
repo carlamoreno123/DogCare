@@ -137,9 +137,9 @@ class _InsertarConsultaScreenState extends State<InsertarConsultaScreen> {
                       ? 'Fecha: ${fechaConsulta!.day}-${fechaConsulta!.month}-${fechaConsulta!.year} '
                         '${fechaConsulta!.hour.toString().padLeft(2,'0')}:${fechaConsulta!.minute.toString().padLeft(2,'0')}'
                       : 'Seleccionar fecha y hora',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
-                trailing: const Icon(Icons.calendar_today, color: Colors.teal),
+                trailing: const Icon(Icons.calendar_today, color: Colors.teal, size: 26,),
                 onTap: () async {
                   final pickedDate = await showDatePicker(
                     context: context,
@@ -172,8 +172,8 @@ class _InsertarConsultaScreenState extends State<InsertarConsultaScreen> {
               _loading
                   ? const CircularProgressIndicator()
                   : ElevatedButton.icon(
-                      icon: const Icon(Icons.save),
-                      label: const Text('Guardar Consulta'),
+                      icon: const Icon(Icons.save, color: Color.fromARGB(253, 255, 254, 254),),
+                      label: const Text('Guardar Consulta', style: TextStyle(color: Colors.white, fontSize: 23),),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.teal,
                         minimumSize: const Size.fromHeight(50),

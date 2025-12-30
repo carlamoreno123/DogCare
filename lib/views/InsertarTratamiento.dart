@@ -191,7 +191,7 @@ Future<void> _submitTratamiento() async {
                   ),
                   TextFormField(
                     controller: _dosisController,
-                    decoration: const InputDecoration(labelText: 'Dosis'),
+                    decoration: const InputDecoration(labelText: 'Dosis por mg', ),
                     validator: (val) =>
                         val == null || val.isEmpty ? 'Campo obligatorio' : null,
                   ),
@@ -212,7 +212,7 @@ Future<void> _submitTratamiento() async {
                       ),
                       TextButton(
                         onPressed: _pickFechaInicio,
-                        child: const Text('Seleccionar'),
+                        child: const Text('Seleccionar', style: TextStyle(color: Colors.black),),
                       ),
                     ],
                   ),
@@ -225,7 +225,7 @@ Future<void> _submitTratamiento() async {
                       ),
                       TextButton(
                         onPressed: _pickFechaFin,
-                        child: const Text('Seleccionar'),
+                        child: const Text('Seleccionar', style: TextStyle(color: Colors.black),),
                       ),
                     ],
                   ),
@@ -241,6 +241,7 @@ Future<void> _submitTratamiento() async {
                     children: [
                       const Text('Activo:'),
                       Switch(
+                        activeColor: Colors.teal,
                         value: _activo,
                         onChanged: (val) => setState(() => _activo = val),
                       ),
@@ -253,7 +254,7 @@ Future<void> _submitTratamiento() async {
                       minimumSize: const Size.fromHeight(50),
                     ),
                     onPressed: _submitTratamiento,
-                    child: const Text('Agregar Tratamiento', style: TextStyle(fontSize: 18)),
+                    child: const Text('Agregar Tratamiento', style: TextStyle(fontSize: 20, color: Colors.white)),
                   ),
                 ],
               ),
