@@ -1,29 +1,26 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:animate_do/animate_do.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../entities/perro.dart';
-import '../entities/consulta.dart';
-import 'InsertarConsulta.dart';
+import '../entities/tratamiento.dart';
+import 'InsertarTratamiento.dart';
 
-class ConsultasVeterinariasScreen extends StatefulWidget {
-  const ConsultasVeterinariasScreen({super.key});
+class MedicinasScreen extends StatefulWidget {
+  const MedicinasScreen({super.key});
 
   @override
-  State<ConsultasVeterinariasScreen> createState() =>
-      _ConsultasVeterinariasScreenState();
+  State<MedicinasScreen> createState() => _MedicinasScreenState();
 }
 
-class _ConsultasVeterinariasScreenState
-    extends State<ConsultasVeterinariasScreen> {
-  bool showProximas = true;
-
+class _MedicinasScreenState extends State<MedicinasScreen> {
   List<Perro> _perros = [];
   Perro? _selectedPerro;
   bool _loadingPerros = false;
   bool _selectionShown = false;
-  List<Consulta> _consultas = [];
-  bool _loadingConsultas = false;
+
+  List<Tratamiento> _tratamientos = [];
+  bool _loadingTratamientos = false;
 
   @override
   void initState() {
@@ -49,17 +46,18 @@ class _ConsultasVeterinariasScreenState
     } catch (e) {
       debugPrint('Error loading perros: $e');
     } finally {
-      setState(() {
-        _loadingPerros = false;
-      });
+      setState(() => _loadingPerros = false);
 
+      // Mostrar diálogo de selección solo una vez
       if (!_selectionShown) {
         _selectionShown = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final p = await _showSelectPerroDialog();
           if (p != null) {
             setState(() => _selectedPerro = p);
-            _loadConsultas(forPerro: p);
+            _loadTratamientos(forPerro: p);
+          } else {
+            _loadTratamientos(); // si se elige "Todas las mascotas"
           }
         });
       }
@@ -108,46 +106,61 @@ class _ConsultasVeterinariasScreenState
     );
   }
 
-  Future<void> _loadConsultas({Perro? forPerro}) async {
-    setState(() => _loadingConsultas = true);
-    try {
-      final tipo = showProximas ? 'proximas' : 'pasadas';
-      final uri = Uri.parse(
-          'http://172.22.12.23/api_dogcare/get_consulta.php?tipo=$tipo');
-      final resp = await http.get(uri);
+  // Cargar tratamientos filtrando por perro seleccionado si se pasa
+  Future<void> _loadTratamientos({Perro? forPerro}) async {
+  setState(() => _loadingTratamientos = true);
+  try {
+    final uri = Uri.parse('http://172.22.12.23/api_dogcare/get_tratamiento.php');
+    final resp = await http.get(uri);
 
-      if (resp.statusCode == 200) {
-        final data = jsonDecode(resp.body);
-        List list = data['consultas'] ?? [];
+    if (resp.statusCode == 200) {
+      final data = jsonDecode(resp.body);
+      List list = data['tratamientos'] ?? [];
 
-        if (forPerro != null) {
-          list = list.where((e) => e['idperro'].toString() == forPerro.idperro.toString()).toList();
-        }
-
-        setState(() {
-          _consultas = list.map((e) => Consulta.fromJson(e)).toList();
-        });
-      } else {
-        debugPrint('Error cargando consultas: ${resp.statusCode}');
+      if (forPerro != null) {
+        list = list.where((e) {
+          final id = int.tryParse(e['idperro']?.toString() ?? '');
+          return id != null && id == forPerro.idperro;
+        }).toList();
       }
-    } catch (e) {
-      debugPrint('Error loadConsultas: $e');
-    } finally {
-      setState(() => _loadingConsultas = false);
+
+      setState(() {
+        _tratamientos = list.map((e) => Tratamiento.fromJson(e)).toList();
+      });
+    } else {
+      debugPrint('Error cargando tratamientos: ${resp.statusCode}');
+    }
+  } catch (e) {
+    debugPrint('Error loadTratamientos: $e');
+  } finally {
+    setState(() => _loadingTratamientos = false);
+  }
+}
+
+
+  Future<void> _insertTratamiento() async {
+    if (_selectedPerro == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Primero selecciona una mascota')),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            InsertTratamientoScreen(selectedPerro: _selectedPerro),
+      ),
+    );
+
+    if (result == true) {
+      _loadTratamientos(forPerro: _selectedPerro);
     }
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final filteredConsultas = _consultas.where((c) {
-      final matchesDate = showProximas ? c.fecha.isAfter(now) || _isSameDay(c.fecha, now) : c.fecha.isBefore(now);
-      return matchesDate;
-    }).toList();
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -160,28 +173,16 @@ class _ConsultasVeterinariasScreenState
         child: SafeArea(
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.teal, size: 30,),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.teal,
+                    size: 30,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
-              ),
-               Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.add, color: Colors.teal, size: 30,),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => InsertarConsultaScreen(
-                      perro: _selectedPerro,
-                    ),
-                  )).then((_) => _loadConsultas(forPerro: _selectedPerro)),
-                ),
-              ),
-                ],
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -189,9 +190,9 @@ class _ConsultasVeterinariasScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Consultas Veterinarias 🩺',
+                      'Medicinas 🩺',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: Colors.teal,
                       ),
@@ -200,43 +201,44 @@ class _ConsultasVeterinariasScreenState
                     Text(
                       _selectedPerro == null
                           ? 'Mostrando todas las mascotas'
-                          : 'Consultas de: ${_selectedPerro!.nombre}',
-                      style: const TextStyle(color: Colors.black54, fontSize: 22),
+                          : 'Medicinas de: ${_selectedPerro!.nombre}',
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 28,
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 22),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Row(
-                  children: [
-                    _segmentButton('Próximas', showProximas, () {
-                      setState(() => showProximas = true);
-                      _loadConsultas(forPerro: _selectedPerro);
-                    }),
-                    SizedBox(width: 12),
-                    _segmentButton('Pasadas', !showProximas, () {
-                      setState(() => showProximas = false);
-                      _loadConsultas(forPerro: _selectedPerro);
-                    }),
-                  ],
+              const SizedBox(height: 35),
+              BounceInUp(
+                delay: const Duration(milliseconds: 1500),
+                child: ElevatedButton(
+                  onPressed: _insertTratamiento,
+                  child: const Text(
+                    'Insertar Tratamiento',
+                    style: TextStyle(fontSize: 23, color: Colors.teal),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Expanded(
-                child: _loadingConsultas
+                child: _loadingTratamientos
                     ? const Center(child: CircularProgressIndicator())
-                    : filteredConsultas.isEmpty
-                        ? const Center(child: Text('No hay consultas'))
+                    : _tratamientos.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No hay tratamientos',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
-                            itemCount: filteredConsultas.length,
+                            itemCount: _tratamientos.length,
                             itemBuilder: (context, index) {
-                              final c = filteredConsultas[index];
-                              final isPast = c.fecha.isBefore(now);
+                              final t = _tratamientos[index];
                               return BounceInLeft(
-                                delay: Duration(milliseconds: 400 * index),
+                                delay: Duration(milliseconds: 300 * index),
                                 child: Container(
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(16),
@@ -257,16 +259,16 @@ class _ConsultasVeterinariasScreenState
                                       Row(
                                         children: [
                                           CircleAvatar(
-                                            backgroundColor: isPast ? Colors.grey[300] : Colors.teal,
-                                            child: Icon(
-                                              Icons.medical_services,
-                                              color: isPast ? Colors.grey : Colors.white,
+                                            backgroundColor: Colors.orangeAccent,
+                                            child: const Icon(
+                                              Icons.local_hospital,
+                                              color: Colors.white,
                                             ),
                                           ),
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Text(
-                                              c.perro,
+                                              t.tratamiento,
                                               style: const TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
@@ -274,16 +276,32 @@ class _ConsultasVeterinariasScreenState
                                             ),
                                           ),
                                           Text(
-                                            '${c.fecha.day}/${c.fecha.month}/${c.fecha.year}',
-                                            style: const TextStyle(color: Colors.black54),
+                                            '${t.fecha_inicio.day}/${t.fecha_inicio.month}/${t.fecha_inicio.year}',
+                                            style: const TextStyle(
+                                              color: Colors.black54,
+                                            ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 12),
-                                      _infoRow(Icons.person, c.veterinario),
-                                      
-                                      _infoRow(Icons.notes, c.diagnostico),
-                                     
+                                      const SizedBox(height: 10),
+                                      _infoRow(
+                                        Icons.medication,
+                                        'Dosis: ${t.dosis}',
+                                      ),
+                                      _infoRow(
+                                        Icons.repeat,
+                                        'Veces al día: ${t.veces_dia}',
+                                      ),
+                                      _infoRow(
+                                        Icons.event,
+                                        'Fecha fin: ${t.fecha_fin.day}/${t.fecha_fin.month}/${t.fecha_fin.year}',
+                                      ),
+                                      _infoRow(Icons.note, 'Razón: ${t.razon}'),
+                                      _infoRow(Icons.notes, 'Notas: ${t.notas}'),
+                                      _infoRow(
+                                        Icons.check,
+                                        'Activo: ${t.activo ? 'Sí' : 'No'}',
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -298,38 +316,12 @@ class _ConsultasVeterinariasScreenState
     );
   }
 
-  Widget _segmentButton(String text, bool selected, VoidCallback onTap) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? Colors.teal : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.teal),
-          ),
-          child: Center(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: selected ? Colors.white : Colors.teal,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _infoRow(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.teal),
+          Icon(icon, size: 18, color: Colors.orangeAccent),
           const SizedBox(width: 8),
           Expanded(child: Text(text)),
         ],

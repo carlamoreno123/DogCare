@@ -9,14 +9,26 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  table_calendar: ^3.0.9
+  cupertino_icons: ^1.0.2
+  mysql1: ^0.20.0
+  http: ^1.6.0
+  flutter_native_splash: ^2.4.7
+  calendar_view: ^1.4.0
+  url_launcher: ^6.1.10
+  intl: ^0.19.0
+  animate_do: ^4.2.0
+  timezone: ^0.9.0
+  shared_preferences: ^2.3.2
+  file_picker: ^10.3.6
+  video_player: ^2.8.2
+  google_fonts: ^4.0.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  flutter_native_splash: ^2.2.18
-  http: ^1.0.0
 
 flutter:
   uses-material-design: true
@@ -30,8 +42,8 @@ flutter_icons:
   image_path: "assets/images/logo.png"
 
 flutter_native_splash:
-  color: "#ffffff"          # Fondo del splash
-  image: "assets/images/splash.png" # Tu logo
+  color: "#ffffff"
+  image: "assets/images/splash.png"
   android: true
   ios: true
   web: false

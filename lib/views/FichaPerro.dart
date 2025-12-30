@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../entities/perro.dart';
@@ -57,11 +58,11 @@ class _FichaPerroState extends State<FichaPerro> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.teal),
+                      icon: const Icon(Icons.arrow_back, color: Colors.teal, size: 30),
                       onPressed: () => Navigator.pop(context),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.teal),
+                      icon: const Icon(Icons.edit, color: Colors.teal, size: 26),
                       onPressed: () async {
                         final edited = await Navigator.push<Perro>(
                           context,
@@ -92,12 +93,15 @@ class _FichaPerroState extends State<FichaPerro> {
 
                 // 🐶 FOTO
                 _imageUrl != null
-                    ? CircleAvatar(
-                        radius: 80,
-                        backgroundColor: Colors.white,
-                        backgroundImage: NetworkImage(_imageUrl!),
-                        onBackgroundImageError: (_, __) {},
-                      )
+                    ? BounceIn(
+                        duration: const Duration(milliseconds: 3000),
+                      child: CircleAvatar(
+                          radius: 85,
+                          backgroundColor: Colors.white,
+                          backgroundImage: NetworkImage(_imageUrl!),
+                          onBackgroundImageError: (_, __) {},
+                        ),
+                    )
                     : const CircleAvatar(
                         radius: 80,
                         backgroundColor: Colors.teal,
@@ -110,7 +114,7 @@ class _FichaPerroState extends State<FichaPerro> {
                 Text(
                   widget.perro.nombre,
                   style: const TextStyle(
-                    fontSize: 28,
+                    fontSize: 33,
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -120,7 +124,7 @@ class _FichaPerroState extends State<FichaPerro> {
 
                 Text(
                   widget.perro.raza ?? 'Sin raza',
-                  style: const TextStyle(color: Colors.black54),
+                  style: const TextStyle(color: Colors.black54, fontSize: 18),
                 ),
 
                 const SizedBox(height: 30),
@@ -152,40 +156,43 @@ class _FichaPerroState extends State<FichaPerro> {
 
   // 🪪 CARD INFO
   Widget _infoCard(IconData icon, String label, String? value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 4)),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.teal.withOpacity(0.15),
-            child: Icon(icon, color: Colors.teal),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(value ?? '-', style: const TextStyle(fontSize: 16)),
-              ],
+    return BounceInLeft(
+      delay: const Duration(milliseconds: 500),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 4)),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.teal.withOpacity(0.15),
+              child: Icon(icon, color: Colors.teal),
             ),
-          ),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(value ?? '-', style: const TextStyle(fontSize: 16)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

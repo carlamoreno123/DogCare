@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -104,24 +105,24 @@ class _PerrosScreenState extends State<PerrosScreen> {
                     Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.teal),
+                    icon: const Icon(Icons.arrow_back, color: Colors.teal,  size: 30,),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
                   Align(
   alignment: Alignment.centerLeft,
   child: IconButton(
-    icon: const Icon(Icons.add, color: Colors.teal),
+    icon: const Icon(Icons.add, color: Colors.teal, size: 40,),
     onPressed: () async {
-      // Navegar a InsertarPerroScreen
+  
       final nuevoPerro = await Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const InsertarPerroScreen()),
       );
 
-      // Si se insertó un perro, puedes actualizar tu lista o hacer algo con él
+    
       if (nuevoPerro != null) {
-        // Por ejemplo, recargar la lista o agregarlo a tu estado
+       
         debugPrint('Nuevo perro insertado: ${nuevoPerro.nombre}');
       }
     },
@@ -138,9 +139,9 @@ class _PerrosScreenState extends State<PerrosScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text(
-                      'Mis Mascotas🐶',
+                      'Mis Mascotas 🐶',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 36,
                         fontWeight: FontWeight.bold,
                         color: Colors.teal,
                       ),
@@ -148,7 +149,8 @@ class _PerrosScreenState extends State<PerrosScreen> {
                     SizedBox(height: 6),
                     Text(
                       'Toca uno para ver su ficha',
-                      style: TextStyle(color: Colors.black54),
+                      style: TextStyle(color: Colors.black54, fontSize: 26),
+                    
                     ),
                   ],
                 ),
@@ -191,44 +193,47 @@ class _PerrosScreenState extends State<PerrosScreen> {
                         itemBuilder: (context, index) {
                           final perro = perros[index];
 
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 14),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 8,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(14),
-                              leading: _avatarPerro(perro),
-                              title: Text(
-                                perro.nombre,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              subtitle: Text(perro.raza ?? 'Sin raza'),
-                              trailing: const Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: Colors.teal,
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        FichaPerro(perro: perro),
+                          return BounceInLeft(
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 8,
+                                    offset: Offset(0, 20),
                                   ),
-                                );
-                              },
+                                ],
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(14),
+                                leading: _avatarPerro(perro),
+                                title: Text(
+                                  perro.nombre,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                  ),
+                                ),
+                                subtitle: Text(perro.raza ?? 'Sin raza', 
+                                    style: const TextStyle(fontSize: 18)),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.teal,
+                                ),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          FichaPerro(perro: perro),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           );
                         },

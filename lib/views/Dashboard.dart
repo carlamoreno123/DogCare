@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:dogcare/views/Perros.dart';
 import 'package:dogcare/views/Consultas.dart';
+import 'package:animate_do/animate_do.dart';
+import 'Medicinas.dart';
+import 'Avisos.dart';
+
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -26,8 +30,8 @@ class _DashboardState extends State<Dashboard> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFB2FEFA),
-              Color(0xFF0ED2F7),
+              Color.fromARGB(255, 132, 231, 228),
+              Color.fromARGB(255, 205, 230, 235),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -43,11 +47,11 @@ class _DashboardState extends State<Dashboard> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children:[
                     Text(
                       '¡Bienvenido! 🐾',
                       style: TextStyle(
-                        fontSize: 28,
+                        fontSize: 37,
                         fontWeight: FontWeight.bold,
                         color: Colors.teal,
                       ),
@@ -56,7 +60,7 @@ class _DashboardState extends State<Dashboard> {
                     Text(
                       'Cuida a tu mejor amigo desde aquí',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 29,
                         color: Colors.black54,
                       ),
                     ),
@@ -67,56 +71,235 @@ class _DashboardState extends State<Dashboard> {
               const SizedBox(height: 30),
 
               // 🃏 TARJETAS
+            Expanded(
+  child: Padding(
+    padding: const EdgeInsets.all(16),
+    child: BackInUp(
+      duration: const Duration(milliseconds: 1000),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ───── FILA SUPERIOR ─────
+          Row(
+            children: [
+              // MIS MASCOTAS
               Expanded(
-                child: Center(
-                  child: Wrap(
-                    spacing: 24,
-                    runSpacing: 24,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      _buildCard(
-                        context,
-                        title: 'Mis Mascotas',
-                        icon: Icons.pets,
-                        gradient: const LinearGradient(
-                          colors: [Colors.teal, Colors.greenAccent],
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PerrosScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 200, // 👈 MÁS PEQUEÑO
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Colors.teal, Colors.greenAccent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const PerrosScreen(),
+                      ],
+                    ),
+                    child: BackInDown(
+                      delay: const Duration(milliseconds: 1300),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.pets, color: Colors.white, size: 34),
+                          SizedBox(height: 6),
+                          Text(
+                            'Mis Mascotas',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                      _buildCard(
-                        context,
-                        title: 'Consultas Veterinarias',
-                        icon: Icons.medical_services,
-                        gradient: const LinearGradient(
-                          colors: [Colors.blueAccent, Colors.lightBlue],
-                        ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const ConsultasVeterinariasScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildCard(
-                        context,
-                        title: 'Medicinas',
-                        icon: Icons.local_hospital,
-                        gradient: const LinearGradient(
-                          colors: [Colors.orangeAccent, Colors.deepOrange],
-                        ),
-                        onTap: () => _onItemTapped(2),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
+      
+              const SizedBox(width: 12),
+      
+              // CONSULTAS
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ConsultasVeterinariasScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Colors.blueAccent, Color.fromARGB(255, 115, 179, 209)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: BackInDown(
+                      delay: const Duration(milliseconds: 1300),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.medical_services,
+                              color: Colors.white, size: 34),
+                          SizedBox(height: 6),
+                          Text(
+                            'Consultas\nVeterinarias',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      
+          const SizedBox(height: 40),
+      
+          // ───── FILA INFERIOR ─────
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: ()=>Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                             MedicinasScreen(),
+                      ),
+                    ),
+                  child: Container(
+                    height: 90, // 👈 ALARGADA Y MÁS BAJA
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Colors.orangeAccent, Colors.deepOrange],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: BackInDown(
+                      delay: const Duration(milliseconds: 1300),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.local_hospital,
+                              color: Colors.white, size: 30),
+                          SizedBox(width: 10),
+                          Text(
+                            'Medicinas',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+           Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: ()=>Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const AvisosScreen(),
+                      ),
+                    ),
+                  child: Container(
+                    height: 90, // 👈 ALARGADA Y MÁS BAJA
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color.fromARGB(255, 116, 54, 216), Color.fromARGB(255, 177, 149, 241)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: BackInDown(
+                      delay: const Duration(milliseconds: 1300),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.warning_amber_rounded,
+                              color: Colors.white, size: 30),
+                          SizedBox(width: 10),
+                          Text(
+                            'Avisos',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
             ],
           ),
         ),
