@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../entities/perro.dart';
 import '../entities/aviso.dart';
-import '../main.dart'; // Para scheduleNotification
 
 class AvisosScreen extends StatefulWidget {
   const AvisosScreen({super.key});
@@ -51,13 +50,14 @@ class _AvisosScreenState extends State<AvisosScreen> {
   Future<void> _loadAvisos({required Perro forPerro}) async {
     setState(() => _loadingAvisos = true);
     try {
-      final uri = Uri.parse(
-          'http://172.22.12.23/api_dogcare/get_aviso.php?idperro=${forPerro.idperro}');
+     final uri = Uri.parse('http://172.22.12.23/api_dogcare/get_aviso.php?idperro=${forPerro.idperro}');
+
       final resp = await http.get(uri);
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
         List list = data['avisos'] ?? [];
 
+        // Filtrar avisos que no han pasado
         final today = DateTime.now();
         list = list.where((e) {
           final avisoDate = DateTime.parse(e['fechaRecordatorio']);
@@ -78,7 +78,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
   // POST aviso a la base de datos
   Future<void> _postAviso(Aviso aviso) async {
     try {
-      final uri = Uri.parse('http://172.22.12.23/api_dogcare/post_aviso.php');
+      final uri =
+          Uri.parse('http://172.22.12.23/api_dogcare/post_aviso.php');
       final body = {
         'idperro': aviso.idPerro.toString(),
         'titulo': aviso.titulo,
@@ -111,7 +112,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: const Text(
             'Agregar Aviso',
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -123,8 +125,11 @@ class _AvisosScreenState extends State<AvisosScreen> {
                 DropdownButtonFormField<String>(
                   items: const [
                     DropdownMenuItem(value: 'Pasear', child: Text('Pasear')),
-                    DropdownMenuItem(value: 'Cortar uñas', child: Text('Cortar uñas')),
-                    DropdownMenuItem(value: 'Reponer comida', child: Text('Reponer comida')),
+                    DropdownMenuItem(
+                        value: 'Cortar uñas', child: Text('Cortar uñas')),
+                    DropdownMenuItem(
+                        value: 'Reponer comida',
+                        child: Text('Reponer comida')),
                     DropdownMenuItem(value: 'Otro', child: Text('Otro')),
                   ],
                   onChanged: (val) {
@@ -149,7 +154,7 @@ class _AvisosScreenState extends State<AvisosScreen> {
                     _selectedDate == null
                         ? 'Seleccionar fecha y hora'
                         : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year} '
-                          '${_selectedDate!.hour.toString().padLeft(2, '0')}:${_selectedDate!.minute.toString().padLeft(2, '0')}',
+                            '${_selectedDate!.hour.toString().padLeft(2, '0')}:${_selectedDate!.minute.toString().padLeft(2, '0')}',
                     style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   onPressed: () async {
@@ -166,7 +171,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
                       );
                       if (time != null) {
                         setStateDialog(() {
-                          _selectedDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                          _selectedDate = DateTime(date.year, date.month,
+                              date.day, time.hour, time.minute);
                         });
                       }
                     }
@@ -178,41 +184,34 @@ class _AvisosScreenState extends State<AvisosScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar', style: TextStyle(fontSize: 16, color: Colors.black)),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
             ),
-           ElevatedButton(
-  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-  onPressed: () async {
-    if (_tituloController.text.isEmpty || _selectedDate == null) return;
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+              onPressed: () {
+                if (_tituloController.text.isEmpty || _selectedDate == null)
+                  return;
 
-    final newAviso = Aviso(
-      idAviso: 0,
-      idPerro: _perros[_selectedIndex].idperro!,
-      titulo: _tituloController.text,
-      descripcion: _descripcionController.text,
-      fechaRecordatorio: _selectedDate!,
-      completado: false,
-    );
+                final newAviso = Aviso(
+                  idAviso: 0,
+                  idPerro: _perros[_selectedIndex].idperro!,
+                  titulo: _tituloController.text,
+                  descripcion: _descripcionController.text,
+                  fechaRecordatorio: _selectedDate!,
+                  completado: false,
+                );
 
-    // Guardar en base de datos
-    await _postAviso(newAviso);
-
-    // Programar notificación local
-    await scheduleNotification(
-      id: DateTime.now().millisecondsSinceEpoch ~/ 1000, // ID único
-      title: newAviso.titulo,
-      body: newAviso.descripcion,
-      scheduledDate: newAviso.fechaRecordatorio,
-    );
-
-    Navigator.pop(context);
-  },
-  child: const Text(
-    'Agregar',
-    style: TextStyle(fontSize: 16, color: Colors.white),
-  ),
-),
-
+                _postAviso(newAviso);
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Agregar',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+            ),
           ],
         ),
       ),
@@ -241,13 +240,15 @@ class _AvisosScreenState extends State<AvisosScreen> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.teal, size: 30),
+                    icon:
+                        const Icon(Icons.arrow_back, color: Colors.teal, size: 30),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 10),
                   const Text(
                     'Avisos 🐾',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.teal),
+                    style: TextStyle(
+                        fontSize: 28, fontWeight: FontWeight.bold, color: Colors.teal),
                   ),
                 ],
               ),
@@ -276,7 +277,11 @@ class _AvisosScreenState extends State<AvisosScreen> {
                               color: isSelected ? Colors.teal : Colors.orangeAccent,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: const [
-                                BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 3),
+                                ),
                               ],
                             ),
                             child: Center(
@@ -298,7 +303,12 @@ class _AvisosScreenState extends State<AvisosScreen> {
                 child: _loadingAvisos
                     ? const Center(child: CircularProgressIndicator())
                     : _avisos.isEmpty
-                        ? const Center(child: Text('No hay avisos', style: TextStyle(fontSize: 20, color: Colors.black54)))
+                        ? const Center(
+                            child: Text(
+                              'No hay avisos',
+                              style: TextStyle(fontSize: 20, color: Colors.black54),
+                            ),
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: _avisos.length,
@@ -309,7 +319,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
                               return BounceInLeft(
                                 delay: Duration(milliseconds: 200 * index),
                                 child: Card(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20)),
                                   color: isPast ? Colors.grey[300] : Colors.white,
                                   elevation: 4,
                                   margin: const EdgeInsets.only(bottom: 12),
@@ -320,18 +331,22 @@ class _AvisosScreenState extends State<AvisosScreen> {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: isPast ? Colors.black38 : Colors.black87,
+                                        color:
+                                            isPast ? Colors.black38 : Colors.black87,
                                       ),
                                     ),
                                     subtitle: Text(
                                       '${aviso.descripcion}\nRecordatorio: ${avisoDate.day}/${avisoDate.month}/${avisoDate.year} '
                                       '${avisoDate.hour.toString().padLeft(2, '0')}:${avisoDate.minute.toString().padLeft(2, '0')}',
-                                      style: TextStyle(color: isPast ? Colors.black38 : Colors.black54),
+                                      style: TextStyle(
+                                        color: isPast ? Colors.black38 : Colors.black54,
+                                      ),
                                     ),
                                     trailing: Checkbox(
                                       value: aviso.completado,
                                       onChanged: (val) {
-                                        setState(() => aviso.completado = val ?? false);
+                                        setState(
+                                            () => aviso.completado = val ?? false);
                                       },
                                     ),
                                   ),
