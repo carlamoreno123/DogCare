@@ -22,6 +22,8 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
   List<Tratamiento> _tratamientos = [];
   bool _loadingTratamientos = false;
 
+  bool showActivas = true; // Nueva variable para pestañas Activas / Pasadas
+
   @override
   void initState() {
     super.initState();
@@ -35,12 +37,7 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
       final resp = await http.get(Uri.parse(url));
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
-        List list = [];
-        if (data is Map && data.containsKey('perros')) {
-          list = data['perros'];
-        } else if (data is List) {
-          list = data;
-        }
+        List list = data is Map && data.containsKey('perros') ? data['perros'] : data is List ? data : [];
         _perros = list.map((e) => Perro.fromJson(e)).toList();
       }
     } catch (e) {
@@ -48,7 +45,6 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
     } finally {
       setState(() => _loadingPerros = false);
 
-      // Mostrar diálogo de selección solo una vez
       if (!_selectionShown) {
         _selectionShown = true;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -57,7 +53,7 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
             setState(() => _selectedPerro = p);
             _loadTratamientos(forPerro: p);
           } else {
-            _loadTratamientos(); // si se elige "Todas las mascotas"
+            _loadTratamientos();
           }
         });
       }
@@ -106,37 +102,35 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
     );
   }
 
-  // Cargar tratamientos filtrando por perro seleccionado si se pasa
   Future<void> _loadTratamientos({Perro? forPerro}) async {
-  setState(() => _loadingTratamientos = true);
-  try {
-    final uri = Uri.parse('http://172.22.12.23/api_dogcare/get_tratamiento.php');
-    final resp = await http.get(uri);
+    setState(() => _loadingTratamientos = true);
+    try {
+      final uri = Uri.parse('http://172.22.12.23/api_dogcare/get_tratamiento.php');
+      final resp = await http.get(uri);
 
-    if (resp.statusCode == 200) {
-      final data = jsonDecode(resp.body);
-      List list = data['tratamientos'] ?? [];
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        List list = data['tratamientos'] ?? [];
 
-      if (forPerro != null) {
-        list = list.where((e) {
-          final id = int.tryParse(e['idperro']?.toString() ?? '');
-          return id != null && id == forPerro.idperro;
-        }).toList();
+        if (forPerro != null) {
+          list = list.where((e) {
+            final id = int.tryParse(e['idperro']?.toString() ?? '');
+            return id != null && id == forPerro.idperro;
+          }).toList();
+        }
+
+        setState(() {
+          _tratamientos = list.map((e) => Tratamiento.fromJson(e)).toList();
+        });
+      } else {
+        debugPrint('Error cargando tratamientos: ${resp.statusCode}');
       }
-
-      setState(() {
-        _tratamientos = list.map((e) => Tratamiento.fromJson(e)).toList();
-      });
-    } else {
-      debugPrint('Error cargando tratamientos: ${resp.statusCode}');
+    } catch (e) {
+      debugPrint('Error loadTratamientos: $e');
+    } finally {
+      setState(() => _loadingTratamientos = false);
     }
-  } catch (e) {
-    debugPrint('Error loadTratamientos: $e');
-  } finally {
-    setState(() => _loadingTratamientos = false);
   }
-}
-
 
   Future<void> _insertTratamiento() async {
     if (_selectedPerro == null) {
@@ -149,8 +143,7 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            InsertTratamientoScreen(selectedPerro: _selectedPerro),
+        builder: (context) => InsertTratamientoScreen(selectedPerro: _selectedPerro),
       ),
     );
 
@@ -161,6 +154,14 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+
+    // Filtrado de tratamientos activos o pasados
+    final filteredTratamientos = _tratamientos.where((t) {
+      final isVigente = t.activo && (t.fecha_fin.isAfter(now) || t.fecha_fin.isAtSameMomentAs(now));
+      return showActivas ? isVigente : !isVigente;
+    }).toList();
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -176,11 +177,7 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.teal,
-                    size: 30,
-                  ),
+                  icon: const Icon(Icons.arrow_back, color: Colors.teal, size: 30),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -191,52 +188,52 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
                   children: [
                     const Text(
                       'Medicinas 🩺',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.teal,
-                      ),
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.teal),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       _selectedPerro == null
                           ? 'Mostrando todas las mascotas'
                           : 'Medicinas de: ${_selectedPerro!.nombre}',
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 28,
-                      ),
+                      style: const TextStyle(color: Colors.black54, fontSize: 28),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 35),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Row(
+                  children: [
+                    _segmentButton('Activas', showActivas, () {
+                      setState(() => showActivas = true);
+                    }),
+                    const SizedBox(width: 12),
+                    _segmentButton('Pasadas', !showActivas, () {
+                      setState(() => showActivas = false);
+                    }),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               BounceInUp(
                 delay: const Duration(milliseconds: 1500),
                 child: ElevatedButton(
                   onPressed: _insertTratamiento,
-                  child: const Text(
-                    'Insertar Tratamiento',
-                    style: TextStyle(fontSize: 23, color: Colors.teal),
-                  ),
+                  child: const Text('Insertar Tratamiento', style: TextStyle(fontSize: 23, color: Colors.teal)),
                 ),
               ),
               const SizedBox(height: 12),
               Expanded(
                 child: _loadingTratamientos
                     ? const Center(child: CircularProgressIndicator())
-                    : _tratamientos.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No hay tratamientos',
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          )
+                    : filteredTratamientos.isEmpty
+                        ? const Center(child: Text('No hay tratamientos', style: TextStyle(fontSize: 20)))
                         : ListView.builder(
                             padding: const EdgeInsets.all(16),
-                            itemCount: _tratamientos.length,
+                            itemCount: filteredTratamientos.length,
                             itemBuilder: (context, index) {
-                              final t = _tratamientos[index];
+                              final t = filteredTratamientos[index];
                               return BounceInLeft(
                                 delay: Duration(milliseconds: 300 * index),
                                 child: Container(
@@ -246,11 +243,7 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 6,
-                                        offset: Offset(0, 3),
-                                      ),
+                                      BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
                                     ],
                                   ),
                                   child: Column(
@@ -260,48 +253,28 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
                                         children: [
                                           CircleAvatar(
                                             backgroundColor: Colors.orangeAccent,
-                                            child: const Icon(
-                                              Icons.local_hospital,
-                                              color: Colors.white,
-                                            ),
+                                            child: const Icon(Icons.local_hospital, color: Colors.white),
                                           ),
                                           const SizedBox(width: 12),
                                           Expanded(
                                             child: Text(
                                               t.tratamiento,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                           Text(
                                             '${t.fecha_inicio.day}/${t.fecha_inicio.month}/${t.fecha_inicio.year}',
-                                            style: const TextStyle(
-                                              color: Colors.black54,
-                                            ),
+                                            style: const TextStyle(color: Colors.black54),
                                           ),
                                         ],
                                       ),
                                       const SizedBox(height: 10),
-                                      _infoRow(
-                                        Icons.medication,
-                                        'Dosis: ${t.dosis}',
-                                      ),
-                                      _infoRow(
-                                        Icons.repeat,
-                                        'Veces al día: ${t.veces_dia}',
-                                      ),
-                                      _infoRow(
-                                        Icons.event,
-                                        'Fecha fin: ${t.fecha_fin.day}/${t.fecha_fin.month}/${t.fecha_fin.year}',
-                                      ),
+                                      _infoRow(Icons.medication, 'Dosis: ${t.dosis}'),
+                                      _infoRow(Icons.repeat, 'Veces al día: ${t.veces_dia}'),
+                                      _infoRow(Icons.event, 'Fecha fin: ${t.fecha_fin.day}/${t.fecha_fin.month}/${t.fecha_fin.year}'),
                                       _infoRow(Icons.note, 'Razón: ${t.razon}'),
                                       _infoRow(Icons.notes, 'Notas: ${t.notas}'),
-                                      _infoRow(
-                                        Icons.check,
-                                        'Activo: ${t.activo ? 'Sí' : 'No'}',
-                                      ),
+                                    
                                     ],
                                   ),
                                 ),
@@ -310,6 +283,29 @@ class _MedicinasScreenState extends State<MedicinasScreen> {
                           ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _segmentButton(String text, bool selected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? Colors.teal : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.teal),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(color: selected ? Colors.white : Colors.teal, fontWeight: FontWeight.bold),
+            ),
           ),
         ),
       ),

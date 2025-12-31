@@ -1,27 +1,30 @@
 class Aviso {
-   int idAviso; 
+  int idAviso;
+  int idPerro;
   String titulo;
   String descripcion;
   DateTime fechaRecordatorio;
   bool completado;
-  int idPerro;
 
-  Aviso({ 
+  Aviso({
     required this.idAviso,
+    required this.idPerro,
     required this.titulo,
     required this.descripcion,
     required this.fechaRecordatorio,
     required this.completado,
-    required this.idPerro,
   });
 
-  factory Aviso.fromJson(Map<String, dynamic> json) => Aviso(
-        idAviso: json['idAviso'],
-        titulo: json['titulo'],
-        descripcion: json['descripcion'],
-        fechaRecordatorio: DateTime.parse(json['fechaRecordatorio']),
-        completado: json['completado'] == 1,
-        idPerro: json['idperro'],
-      );
+  factory Aviso.fromJson(Map<String, dynamic> json) {
+    return Aviso(
+      idAviso: json['IdAviso'] != null ? int.parse(json['IdAviso'].toString()) : 0,
+      idPerro: json['idperro'] != null ? int.parse(json['idperro'].toString()) : 0,
+      titulo: json['titulo'] ?? '',
+      descripcion: json['descripcion'] ?? '',
+      fechaRecordatorio: json['fechaRecordatorio'] != null
+          ? DateTime.parse(json['fechaRecordatorio'])
+          : DateTime.now(),
+      completado: json['completado'] != null && json['completado'].toString() == '1',
+    );
+  }
 }
-  
